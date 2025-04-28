@@ -1,18 +1,29 @@
-name: Notify Discord
+name: Discord Alerts
+
 on:
   push:
     branches: [ main ]
   pull_request:
-    types: [closed]
+    types: [opened, closed]
+    branches: [ main ]
 
 jobs:
-  notify:
+  alert:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Discord Notification
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged)
-        uses: Ilshidur/action-discord@master
-        with:
-          args: '🚀 Nova alteração no repositório! Veja em: https://github.com/${{ github.repository }}'
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: |
+            🔔 Nova atividade no repositório **${{ github.repository }}**!
+            
+            - Evento: **${{ github.event_name }}**
+            - Branch: **${{ github.ref_name }}**
+            - Autor: **${{ github.actor }}**
+            
+            [Ver detalhes](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
